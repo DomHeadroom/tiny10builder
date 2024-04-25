@@ -93,7 +93,7 @@ $packages = & 'dism' "/image:$($env:SystemDrive)\scratchdir" '/Get-ProvisionedAp
             $matches[1]
         }
     }
-$packagePrefixes = 'Microsoft.BingWeather_', 'Microsoft.GetHelp_', 'Microsoft.Getstarted_', 'Microsoft.MicrosoftOfficeHub_', 'Microsoft.MicrosoftSolitaireCollection_', 'Microsoft.People_', 'Microsoft.WindowsAlarms_', 'microsoft.windowscommunicationsapps_', 'Microsoft.WindowsFeedbackHub_', 'Microsoft.WindowsMaps_', 'Microsoft.WindowsSoundRecorder_', 'Microsoft.Xbox.TCUI_', 'Microsoft.XboxGamingOverlay_', 'Microsoft.XboxGameOverlay_', 'Microsoft.XboxSpeechToTextOverlay_', 'Microsoft.YourPhone_', 'Microsoft.ZuneMusic_', 'Microsoft.ZuneVideo_', 'Microsoft.549981C3F5F10_'
+$packagePrefixes = 'Microsoft.ScreenSketch', 'Microsoft.MSPaint_', 'Microsoft.Wallet_', 'Microsoft.WindowsCamera_', 'Microsoft.SkypeApp_', 'Microsoft.Office.OneNote_', 'Microsoft.MixedReality.Portal_', 'Microsoft.MicrosoftStickyNotes_', 'Microsoft.Microsoft3DViewer_', 'Microsoft.BingWeather_', 'Microsoft.GetHelp_', 'Microsoft.Getstarted_', 'Microsoft.MicrosoftOfficeHub_', 'Microsoft.MicrosoftSolitaireCollection_', 'Microsoft.People_', 'Microsoft.WindowsAlarms_', 'microsoft.windowscommunicationsapps_', 'Microsoft.WindowsFeedbackHub_', 'Microsoft.WindowsMaps_', 'Microsoft.WindowsSoundRecorder_', 'Microsoft.Xbox.TCUI_', 'Microsoft.XboxGamingOverlay_', 'Microsoft.XboxGameOverlay_', 'Microsoft.XboxSpeechToTextOverlay_', 'Microsoft.YourPhone_', 'Microsoft.ZuneMusic_', 'Microsoft.ZuneVideo_', 'Microsoft.549981C3F5F10_'
 
 $packagesToRemove = $packages | Where-Object {
     $packageName = $_
