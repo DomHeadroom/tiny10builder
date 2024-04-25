@@ -1,7 +1,7 @@
 if ((Get-ExecutionPolicy) -eq 'Restricted') {
-    Write-Host "Your current PowerShell Execution Policy is set to Restricted, which prevents scripts from running. Do you want to change it to RemoteSigned? (yes/no)"
+    Write-Host "Your current PowerShell Execution Policy is set to Restricted, which prevents scripts from running. Do you want to change it to RemoteSigned? (si/no)"
     $response = Read-Host
-    if ($response -eq 'yes') {
+    if ($response -eq 'si') {
         Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Confirm:$false
     } else {
         Write-Host "The script cannot be run without changing the execution policy. Exiting..."
@@ -13,7 +13,7 @@ $myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWin
 $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 if ($myWindowsPrincipal.IsInRole($adminRole))
 {
-    $Host.UI.RawUI.WindowTitle = "tiny11 builder"
+    $Host.UI.RawUI.WindowTitle = "creatore tiny10"
     Clear-Host
 }
 else
@@ -24,12 +24,12 @@ else
     [System.Diagnostics.Process]::Start($newProcess);
     exit
 }
-Write-Host "Welcome to the tiny11 image creator!"
+Write-Host "Benvenuto nel creatore d'immagini tiny10!"
 Start-Sleep -Seconds 3
 Clear-Host
 $mainOSDrive = $env:SystemDrive
 
-$DriveLetter = Read-Host "Please enter the drive letter for the Windows 11 image"
+$DriveLetter = Read-Host "Inserisci la lettera del dispositivo per l'immagine di Windows 10"
 $DriveLetter = $DriveLetter + ":"
 
 if ((Test-Path "$DriveLetter\sources\boot.wim") -eq $false -or (Test-Path "$DriveLetter\sources\install.wim") -eq $false) {
@@ -38,50 +38,50 @@ if ((Test-Path "$DriveLetter\sources\boot.wim") -eq $false -or (Test-Path "$Driv
     exit
 }
 
-New-Item -ItemType Directory -Force -Path "$mainOSDrive\tiny11"
-Write-Host "Copying Windows image..."
-Copy-Item -Path "$DriveLetter\*" -Destination "$mainOSDrive\tiny11" -Recurse -Force
+New-Item -ItemType Directory -Force -Path "$mainOSDrive\tiny10"
+Write-Host "Copiando immagine di Windows..."
+Copy-Item -Path "$DriveLetter\*" -Destination "$mainOSDrive\tiny10" -Recurse -Force
 Write-Host "Copy complete!"
 Start-Sleep -Seconds 2
 Clear-Host
 Write-Host "Getting image information:"
-&  'dism' "/Get-WimInfo" "/wimfile:$mainOSDrive\tiny11\sources\install.wim"
+&  'dism' "/Get-WimInfo" "/wimfile:$mainOSDrive\tiny10\sources\install.wim"
 $index = Read-Host "Please enter the image index"
 Write-Host "Mounting Windows image. This may take a while."
-$wimFilePath = "$($env:SystemDrive)\tiny11\sources\install.wim"
+$wimFilePath = "$($env:SystemDrive)\tiny10\sources\install.wim"
 & takeown "/F" $wimFilePath
 & icacls $wimFilePath "/grant" "Administrators:(F)"
 Set-ItemProperty -Path $wimFilePath -Name IsReadOnly -Value $false
 New-Item -ItemType Directory -Force -Path "$mainOSDrive\scratchdir"
-& dism "/mount-image" "/imagefile:$($env:SystemDrive)\tiny11\sources\install.wim" "/index:$index" "/mountdir:$($env:SystemDrive)\scratchdir"
+& dism "/mount-image" "/imagefile:$($env:SystemDrive)\tiny10\sources\install.wim" "/index:$index" "/mountdir:$($env:SystemDrive)\scratchdir"
 
 $imageIntl = & dism /Get-Intl "/Image:$($env:SystemDrive)\scratchdir"
-$languageLine = $imageIntl -split '\n' | Where-Object { $_ -match 'Default system UI language : ([a-zA-Z]{2}-[a-zA-Z]{2})' }
+$languageLine = $imageIntl -split '\n' | Where-Object { $_ -match "Lingua predefinita dell'interfaccia utente del sistema : ([a-zA-Z]{2}-[a-zA-Z]{2})" }
 
 if ($languageLine) {
     $languageCode = $Matches[1]
-    Write-Host "Default system UI language code: $languageCode"
+    Write-Host "Lingua predefinita di sistema: $languageCode"
 } else {
-    Write-Host "Default system UI language code not found."
+    Write-Host "Lingua predefinita del sistema non trovata."
 }
 
-$imageInfo = & 'dism' '/Get-WimInfo' "/wimFile:$($env:SystemDrive)\tiny11\sources\install.wim" "/index:$index"
+$imageInfo = & 'dism' '/Get-WimInfo' "/wimFile:$($env:SystemDrive)\tiny10\sources\install.wim" "/index:$index"
 $lines = $imageInfo -split '\r?\n'
 
 foreach ($line in $lines) {
-    if ($line -like '*Architecture : *') {
-        $architecture = $line -replace 'Architecture : ',''
+    if ($line -like '*Architettura : *') {
+        $architecture = $line -replace 'Architettura : ',''
         # If the architecture is x64, replace it with amd64
         if ($architecture -eq 'x64') {
             $architecture = 'amd64'
         }
-        Write-Host "Architecture: $architecture"
+        Write-Host "Architettura: $architecture"
         break
     }
 }
 
 if (-not $architecture) {
-    Write-Host "Architecture information not found."
+    Write-Host "Informazioni sull'architettura non trovate."
 }
 
 
@@ -89,11 +89,11 @@ Write-Host "Mounting complete! Performing removal of applications..."
 
 $packages = & 'dism' "/image:$($env:SystemDrive)\scratchdir" '/Get-ProvisionedAppxPackages' |
     ForEach-Object {
-        if ($_ -match 'PackageName : (.*)') {
+        if ($_ -match 'PackageName: (.*)') {
             $matches[1]
         }
     }
-$packagePrefixes = 'Clipchamp.Clipchamp_', 'Microsoft.BingNews_', 'Microsoft.BingWeather_', 'Microsoft.GamingApp_', 'Microsoft.GetHelp_', 'Microsoft.Getstarted_', 'Microsoft.MicrosoftOfficeHub_', 'Microsoft.MicrosoftSolitaireCollection_', 'Microsoft.People_', 'Microsoft.PowerAutomateDesktop_', 'Microsoft.Todos_', 'Microsoft.WindowsAlarms_', 'microsoft.windowscommunicationsapps_', 'Microsoft.WindowsFeedbackHub_', 'Microsoft.WindowsMaps_', 'Microsoft.WindowsSoundRecorder_', 'Microsoft.Xbox.TCUI_', 'Microsoft.XboxGamingOverlay_', 'Microsoft.XboxGameOverlay_', 'Microsoft.XboxSpeechToTextOverlay_', 'Microsoft.YourPhone_', 'Microsoft.ZuneMusic_', 'Microsoft.ZuneVideo_', 'MicrosoftCorporationII.MicrosoftFamily_', 'MicrosoftCorporationII.QuickAssist_', 'MicrosoftTeams_', 'Microsoft.549981C3F5F10_'
+$packagePrefixes = 'Microsoft.BingWeather_', 'Microsoft.GetHelp_', 'Microsoft.Getstarted_', 'Microsoft.MicrosoftOfficeHub_', 'Microsoft.MicrosoftSolitaireCollection_', 'Microsoft.People_', 'Microsoft.WindowsAlarms_', 'microsoft.windowscommunicationsapps_', 'Microsoft.WindowsFeedbackHub_', 'Microsoft.WindowsMaps_', 'Microsoft.WindowsSoundRecorder_', 'Microsoft.Xbox.TCUI_', 'Microsoft.XboxGamingOverlay_', 'Microsoft.XboxGameOverlay_', 'Microsoft.XboxSpeechToTextOverlay_', 'Microsoft.YourPhone_', 'Microsoft.ZuneMusic_', 'Microsoft.ZuneVideo_', 'Microsoft.549981C3F5F10_'
 
 $packagesToRemove = $packages | Where-Object {
     $packageName = $_
@@ -104,7 +104,7 @@ foreach ($package in $packagesToRemove) {
 }
 
 
-Write-Host "Removing Edge:"
+Write-Host "Rimuovendo Edge:"
 Remove-Item -Path "$mainOSDrive\scratchdir\Program Files (x86)\Microsoft\Edge" -Recurse -Force
 Remove-Item -Path "$mainOSDrive\scratchdir\Program Files (x86)\Microsoft\EdgeUpdate" -Recurse -Force
 Remove-Item -Path "$mainOSDrive\scratchdir\Program Files (x86)\Microsoft\EdgeCore" -Recurse -Force
@@ -213,18 +213,18 @@ Write-Host "Cleanup complete."
 Write-Host "Unmounting image..."
 & 'dism' '/unmount-image' "/mountdir:$mainOSDrive\scratchdir" '/commit'
 Write-Host "Exporting image..."
-& 'Dism' '/Export-Image' "/SourceImageFile:$mainOSDrive\tiny11\sources\install.wim" "/SourceIndex:$index" "/DestinationImageFile:$mainOSDrive\tiny11\sources\install2.wim" '/compress:max'
-Remove-Item -Path "$mainOSDrive\tiny11\sources\install.wim" -Force
-Rename-Item -Path "$mainOSDrive\tiny11\sources\install2.wim" -NewName "install.wim"
+& 'Dism' '/Export-Image' "/SourceImageFile:$mainOSDrive\tiny10\sources\install.wim" "/SourceIndex:$index" "/DestinationImageFile:$mainOSDrive\tiny10\sources\install2.wim" '/compress:max'
+Remove-Item -Path "$mainOSDrive\tiny10\sources\install.wim" -Force
+Rename-Item -Path "$mainOSDrive\tiny10\sources\install2.wim" -NewName "install.wim"
 Write-Host "Windows image completed. Continuing with boot.wim."
 Start-Sleep -Seconds 2
 Clear-Host
 Write-Host "Mounting boot image:"
-$wimFilePath = "$($env:SystemDrive)\tiny11\sources\boot.wim"
+$wimFilePath = "$($env:SystemDrive)\tiny10\sources\boot.wim"
 & takeown "/F" $wimFilePath
 & icacls $wimFilePath "/grant" "Administrators:(F)"
 Set-ItemProperty -Path $wimFilePath -Name IsReadOnly -Value $false
-& 'dism' '/mount-image' "/imagefile:$mainOSDrive\tiny11\sources\boot.wim" '/index:2' "/mountdir:$mainOSDrive\scratchdir"
+& 'dism' '/mount-image' "/imagefile:$mainOSDrive\tiny10\sources\boot.wim" '/index:2' "/mountdir:$mainOSDrive\scratchdir"
 Write-Host "Loading registry..."
 reg load HKLM\zCOMPONENTS $mainOSDrive\scratchdir\Windows\System32\config\COMPONENTS
 reg load HKLM\zDEFAULT $mainOSDrive\scratchdir\Windows\System32\config\default
@@ -243,7 +243,7 @@ Write-Host "Bypassing system requirements(on the setup image):"
 & 'reg' 'add' 'HKLM\zSYSTEM\Setup\LabConfig' '/v' 'BypassTPMCheck' '/t' 'REG_DWORD' '/d' '1' '/f'
 & 'reg' 'add' 'HKLM\zSYSTEM\Setup\MoSetup' '/v' 'AllowUpgradesWithUnsupportedTPMOrCPU' '/t' 'REG_DWORD' '/d' '1' '/f'
 Write-Host "Tweaking complete!"
-Write-Host "Unmounting Registry..."
+Write-Host "Smontando il Registro..."
 reg unload HKLM\zCOMPONENTS
 reg unload HKLM\zDRIVERS
 reg unload HKLM\zDEFAULT
@@ -251,17 +251,17 @@ reg unload HKLM\zNTUSER
 reg unload HKLM\zSCHEMA
 reg unload HKLM\zSOFTWARE
 reg unload HKLM\zSYSTEM
-Write-Host "Unmounting image..."
+Write-Host "Smontando immagine..."
 & 'dism' '/unmount-image' "/mountdir:$mainOSDrive\scratchdir" '/commit'
 Clear-Host
-Write-Host "The tiny11 image is now completed. Proceeding with the making of the ISO..."
+Write-Host "The tiny10 image is now completed. Proceeding with the making of the ISO..."
 Write-Host "Copying unattended file for bypassing MS account on OOBE..."
-Copy-Item -Path "$PSScriptRoot\autounattend.xml" -Destination "$mainOSDrive\tiny11\autounattend.xml" -Force
+Copy-Item -Path "$PSScriptRoot\autounattend.xml" -Destination "$mainOSDrive\tiny10\autounattend.xml" -Force
 Write-Host "Creating ISO image..."
-& "$PSScriptRoot\oscdimg.exe" '-m' '-o' '-u2' '-udfver102' "-bootdata:2#p0,e,b$mainOSDrive\tiny11\boot\etfsboot.com#pEF,e,b$mainOSDrive\tiny11\efi\microsoft\boot\efisys.bin" "$mainOSDrive\tiny11" "$PSScriptRoot\tiny11.iso"
+& "$PSScriptRoot\oscdimg.exe" '-m' '-o' '-u2' '-udfver102' "-bootdata:2#p0,e,b$mainOSDrive\tiny10\boot\etfsboot.com#pEF,e,b$mainOSDrive\tiny10\efi\microsoft\boot\efisys.bin" "$mainOSDrive\tiny10" "$PSScriptRoot\tiny10.iso"
 Write-Host "Creation completed! Press any key to exit the script..."
 Read-Host "Press Enter to continue"
 Write-Host "Performing Cleanup..."
-Remove-Item -Path "$mainOSDrive\tiny11" -Recurse -Force
+Remove-Item -Path "$mainOSDrive\tiny10" -Recurse -Force
 Remove-Item -Path "$mainOSDrive\scratchdir" -Recurse -Force
 exit
